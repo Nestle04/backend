@@ -1,13 +1,14 @@
-import express from "express";
-import mongoose from "mongoose";
-import path from "path";
+const express = require("express");
+const mongoose = require("mongoose");
 
 const app = express();
 app.use(express.json());
 app.use(express.static("public"));
 
-// подключение к Mongo
-await mongoose.connect("mongodb+srv://nastasiaaa_i:bonya63134259@cluster0.ipom3tg.mongodb.net/Answers?retryWrites=true&w=majority");
+// подключение к MongoDB Atlas
+mongoose.connect("mongodb+srv://nastasiaaa_i:bonya63134259@cluster0.ipom3tg.mongodb.net/Answers?retryWrites=true&w=majority")
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => console.error(err));
 
 const Answer = mongoose.model("Answer", {
   answer: String,
@@ -16,9 +17,13 @@ const Answer = mongoose.model("Answer", {
 
 // API
 app.post("/api/answer", async (req, res) => {
-  await Answer.create({ answer: req.body.answer }); 
-  res.json({ ok: true });
+  try {
+    await Answer.create({ answer: req.body.answer });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// запуск сервера
-app.listen(3000, () => console.log("Server started on http://localhost:3000"));
+// экспорт для Vercel
+module.exports = app;
